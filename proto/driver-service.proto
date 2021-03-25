@@ -2,8 +2,29 @@ syntax = "proto3";
 
 package dist_mr;
 
+import "google/protobuf/empty.proto";
+
 service DriverService {
     rpc SayHello (HelloRequest) returns (HelloResponse) {}
+
+    rpc AskTask (google.protobuf.Empty) returns (TaskInfo) {}
+
+    rpc FinishMap (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+    rpc FinishReduce (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
+enum TaskType {
+    Map = 0;
+    Reduce = 1;
+    NoOp = 2;
+}
+
+message TaskInfo {
+    TaskType type = 1;
+    uint32 id = 2;
+    uint32 M = 3;
+    repeated string filenames = 4;
 }
 
 message HelloRequest {

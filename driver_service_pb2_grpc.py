@@ -3,6 +3,7 @@
 import grpc
 
 import driver_service_pb2 as driver__service__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
 class DriverServiceStub(object):
@@ -19,12 +20,45 @@ class DriverServiceStub(object):
                 request_serializer=driver__service__pb2.HelloRequest.SerializeToString,
                 response_deserializer=driver__service__pb2.HelloResponse.FromString,
                 )
+        self.AskTask = channel.unary_unary(
+                '/dist_mr.DriverService/AskTask',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=driver__service__pb2.TaskInfo.FromString,
+                )
+        self.FinishMap = channel.unary_unary(
+                '/dist_mr.DriverService/FinishMap',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                )
+        self.FinishReduce = channel.unary_unary(
+                '/dist_mr.DriverService/FinishReduce',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                )
 
 
 class DriverServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def SayHello(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AskTask(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FinishMap(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FinishReduce(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -37,6 +71,21 @@ def add_DriverServiceServicer_to_server(servicer, server):
                     servicer.SayHello,
                     request_deserializer=driver__service__pb2.HelloRequest.FromString,
                     response_serializer=driver__service__pb2.HelloResponse.SerializeToString,
+            ),
+            'AskTask': grpc.unary_unary_rpc_method_handler(
+                    servicer.AskTask,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=driver__service__pb2.TaskInfo.SerializeToString,
+            ),
+            'FinishMap': grpc.unary_unary_rpc_method_handler(
+                    servicer.FinishMap,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'FinishReduce': grpc.unary_unary_rpc_method_handler(
+                    servicer.FinishReduce,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -62,5 +111,56 @@ class DriverService(object):
         return grpc.experimental.unary_unary(request, target, '/dist_mr.DriverService/SayHello',
             driver__service__pb2.HelloRequest.SerializeToString,
             driver__service__pb2.HelloResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def AskTask(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/dist_mr.DriverService/AskTask',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            driver__service__pb2.TaskInfo.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def FinishMap(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/dist_mr.DriverService/FinishMap',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def FinishReduce(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/dist_mr.DriverService/FinishReduce',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

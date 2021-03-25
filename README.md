@@ -3,5 +3,5 @@
 Compile protobuf
 
 ```bash
-python -m grpc_tools.protoc -Iproto --python_out=dto --grpc_python_out=services proto/driver-service.proto
+python -m grpc_tools.protoc -Iproto --python_out=. --grpc_python_out=. proto/driver-service.proto
 ```
