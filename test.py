@@ -13,13 +13,17 @@ def parse_line(line):
     return word, count
 
 
-def test():
-    real_counts = standard_count()
+def run_dist_mr():
     os.system('python worker.py --name 1 &')
     os.system('python worker.py --name 2 &')
     os.system('python worker.py --name 3 &')
     os.system('python worker.py --name 4 &')
     os.system('python driver.py -N 6 -M 4')
+
+
+def test():
+    real_counts = standard_count()
+    run_dist_mr()
     for filename in glob.glob(f'{OUT_DIR}/*'):
         with open(filename) as file:
             for word, count in map(parse_line, file.readlines()):
