@@ -1,5 +1,7 @@
 # dist_mr
 
+[![Build and Test](https://github.com/ahmadsalimi/dist_mr/actions/workflows/main.yml/badge.svg)](https://github.com/ahmadsalimi/dist_mr/actions/workflows/main.yml)
+
 Compile protobuf
 
 ```bash
