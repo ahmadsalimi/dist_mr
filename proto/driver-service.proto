@@ -16,6 +16,7 @@ enum TaskType {
     Map = 0;
     Reduce = 1;
     NoOp = 2;
+    ShutDown = 3;
 }
 
 message TaskInfo {

@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14\x64river-service.proto\x12\x07\x64ist_mr\x1a\x1bgoogle/protobuf/empty.proto\"U\n\x08TaskInfo\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.dist_mr.TaskType\x12\n\n\x02id\x18\x02 \x01(\r\x12\t\n\x01M\x18\x03 \x01(\r\x12\x11\n\tfilenames\x18\x04 \x03(\t*)\n\x08TaskType\x12\x07\n\x03Map\x10\x00\x12\n\n\x06Reduce\x10\x01\x12\x08\n\x04NoOp\x10\x02\x32\xc8\x01\n\rDriverService\x12\x36\n\x07\x41skTask\x12\x16.google.protobuf.Empty\x1a\x11.dist_mr.TaskInfo\"\x00\x12=\n\tFinishMap\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12@\n\x0c\x46inishReduce\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x14\x64river-service.proto\x12\x07\x64ist_mr\x1a\x1bgoogle/protobuf/empty.proto\"U\n\x08TaskInfo\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.dist_mr.TaskType\x12\n\n\x02id\x18\x02 \x01(\r\x12\t\n\x01M\x18\x03 \x01(\r\x12\x11\n\tfilenames\x18\x04 \x03(\t*7\n\x08TaskType\x12\x07\n\x03Map\x10\x00\x12\n\n\x06Reduce\x10\x01\x12\x08\n\x04NoOp\x10\x02\x12\x0c\n\x08ShutDown\x10\x03\x32\xc8\x01\n\rDriverService\x12\x36\n\x07\x41skTask\x12\x16.google.protobuf.Empty\x1a\x11.dist_mr.TaskInfo\"\x00\x12=\n\tFinishMap\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12@\n\x0c\x46inishReduce\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x62\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
 
@@ -47,11 +47,16 @@ _TASKTYPE = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='ShutDown', index=3, number=3,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
   serialized_start=149,
-  serialized_end=190,
+  serialized_end=204,
 )
 _sym_db.RegisterEnumDescriptor(_TASKTYPE)
 
@@ -59,6 +64,7 @@ TaskType = enum_type_wrapper.EnumTypeWrapper(_TASKTYPE)
 Map = 0
 Reduce = 1
 NoOp = 2
+ShutDown = 3
 
 
 
@@ -135,8 +141,8 @@ _DRIVERSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=193,
-  serialized_end=393,
+  serialized_start=207,
+  serialized_end=407,
   methods=[
   _descriptor.MethodDescriptor(
     name='AskTask',

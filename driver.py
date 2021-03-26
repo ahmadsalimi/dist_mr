@@ -4,7 +4,7 @@ import glob
 import math
 import time
 from typing import List, Tuple
-from threading import Lock
+from threading import Lock, Event
 from concurrent import futures
 
 import grpc
@@ -22,7 +22,7 @@ class DriverService(services.DriverServiceServicer):
 
     @staticmethod
     def _split_files(N: int) -> List[List[str]]:
-        files = glob.glob('{INPUTS_DIR}/*')
+        files = glob.glob(f'{INPUTS_DIR}/*')
         files_by_map_id = [[] for _ in range(N)]
         for i, file in enumerate(files):
             map_id = i % N
@@ -30,6 +30,7 @@ class DriverService(services.DriverServiceServicer):
         return files_by_map_id
 
     def __init__(self, N: int, M: int):
+        self.stop_event = Event()
         self._N = N
         self._M = M
         self._task_lock = Lock()
@@ -82,7 +83,7 @@ class DriverService(services.DriverServiceServicer):
                 return self._next_map_task()
             if self._state == TaskType.Reduce:
                 return self._next_reduce_task()
-            return TaskInfo(type=TaskType.NoOp)
+            return TaskInfo(type=self._state)
 
     def FinishMap(self, request: Empty, context: grpc.ServicerContext) -> Empty:
         r'''
@@ -107,6 +108,8 @@ class DriverService(services.DriverServiceServicer):
             if self._finished_counter == self._M:
                 logging.info('finished at %.4f secs!',
                              time.time() - self._start_time)
+                self._state = TaskType.ShutDown
+                self.stop_event.set()
             return Empty()
 
 
@@ -128,13 +131,9 @@ def serve(service: DriverService) -> None:
     '''
     server = create_server(service)
     server.start()
-    try:
-        server.wait_for_termination()
-    except KeyboardInterrupt:
-        # Shuts down the server with 0 seconds of grace period. During the
-        # grace period, the server won't accept new connections and allow
-        # existing RPCs to continue within the grace period.
-        server.stop(0)
+    service.stop_event.wait()
+    time.sleep(0.5)
+    server.stop(0)
 
 
 def get_args() -> Tuple[int, int]:
@@ -151,7 +150,7 @@ def get_args() -> Tuple[int, int]:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s driver %(levelname)s: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.INFO)
     N, M = get_args()
     service = DriverService(N, M)
     serve(service)

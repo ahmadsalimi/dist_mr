@@ -1,5 +1,6 @@
 import time
 import logging
+import argparse
 from enum import Enum
 
 import grpc
@@ -46,7 +47,7 @@ class Worker:
 
     def run(self) -> None:
         r'''
-        Runs the worker and calls AskTask rpc forever
+        Runs the worker and calls AskTask rpc until shut down signal
         '''
         while True:
             try:
@@ -59,9 +60,12 @@ class Worker:
                     self._state = WorkerState.Working
                     self._reducer.reduce(task.id)
 
-                else:
+                elif task.type == TaskType.NoOp:
                     self._noop()
                     self._state = WorkerState.Idle
+
+                else:   # shut down
+                    return
             except grpc._channel._InactiveRpcError:
                 # Just one time log driver is unavailable
                 if self._state != WorkerState.Waiting:
@@ -69,7 +73,18 @@ class Worker:
                     self._state = WorkerState.Waiting
 
 
+def get_args() -> str:
+    r'''
+    Parses name from arguments
+    '''
+    parser = argparse.ArgumentParser(description='Starts a worker.')
+    parser.add_argument('--name', dest='name', default='', help='worker name')
+    args = parser.parse_args()
+    return args.name
+
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    name = get_args()
+    logging.basicConfig(format=f'%(asctime)s worker_{name} %(levelname)s: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.INFO)
     worker = Worker()
     worker.run()
