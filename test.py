@@ -29,3 +29,6 @@ def test():
             for word, count in map(parse_line, file.readlines()):
                 assert word in real_counts, f'{word} is not in real words'
                 assert count == real_counts.pop(word)
+
+    # the dictionary must be empty
+    assert not real_counts
