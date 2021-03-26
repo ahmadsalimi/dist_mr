@@ -1,4 +1,5 @@
 import glob
+import os
 import logging
 from typing import List, Dict, Tuple
 
@@ -64,6 +65,7 @@ class Reducer:
         r'''
         Reduce Task
         '''
+        os.makedirs(OUT_DIR, exist_ok=True)
         logging.info('starting reduce %d', bucket_id)
         wc = self._count_bucket(bucket_id)
         with open(f'{OUT_DIR}/out-{bucket_id}', 'a') as out:

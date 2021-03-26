@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List, Dict, IO
 
 import grpc
@@ -76,6 +77,7 @@ class Mapper:
         r'''
         Map task
         '''
+        os.makedirs(INTERMEDIATE_DIR, exist_ok=True)
         logging.info('starting map %d', map_id)
         with self._file_cache:
             for filename in filenames:
