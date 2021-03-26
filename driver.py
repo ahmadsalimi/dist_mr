@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import glob
 import math
+import time
 from threading import Lock
 
 import grpc
@@ -57,57 +58,74 @@ class DriverService(services.DriverServiceServicer):
         self._N = N
         self._M = M
         self._input_files = glob.glob('inputs/*')
+        self._task_lock = Lock()
         self._files_per_map = int(math.ceil(len(self._input_files) / N))
-        self._state = AtomicState()
-        self._task_id = AtomicInt()
-        self._finished_counter = AtomicInt()
+        self._state = TaskType.Map
+        self._task_id = 0
+        self._finished_counter = 0
+        self._start_time = 0
 
     async def SayHello(self, request: HelloRequest, context: grpc.aio.ServicerContext) -> HelloResponse:
         return HelloResponse(message=f'Hello {request.name}')
 
     async def AskTask(self, request: Empty, context: grpc.aio.ServicerContext) -> TaskInfo:
-        if self._state.value == TaskType.Map:
-            task_id = self._task_id.add_get_value(1) - 1
-            if task_id == self._N - 1:
-                self._state.value = TaskType.NoOp
+        with self._task_lock:
+            if self._state == TaskType.Map:
+                task_id = self._task_id
+                self._task_id += 1
 
-            logging.info('starting map %d', task_id)
+                if task_id == self._N - 1:
+                    self._state = TaskType.NoOp
 
-            filenames = self._input_files[task_id*self._files_per_map:(task_id+1)*self._files_per_map]
-            return TaskInfo(type=TaskType.Map, id=task_id, filenames=filenames, M=self._M)
+                if task_id == 0:
+                    self._start_time = time.time()
 
-        if self._state.value == TaskType.Reduce:
-            task_id = self._task_id.add_get_value(1) - 1
-            if task_id == self._M - 1:
-                self._state.value = TaskType.NoOp
+                logging.info('starting map %d', task_id)
 
-            logging.info('starting reduce %d', task_id)
+                filenames = self._input_files[task_id*self._files_per_map:(task_id+1)*self._files_per_map]
+                return TaskInfo(type=TaskType.Map, id=task_id, filenames=filenames, M=self._M)
 
-            return TaskInfo(type=TaskType.Reduce, id=task_id)
+            if self._state == TaskType.Reduce:
+                task_id = self._task_id
+                self._task_id += 1
 
-        return TaskInfo(type=TaskType.NoOp, id=0)
+                if task_id == self._M - 1:
+                    self._state = TaskType.NoOp
+
+                logging.info('starting reduce %d', task_id)
+
+                return TaskInfo(type=TaskType.Reduce, id=task_id)
+
+            return TaskInfo(type=TaskType.NoOp, id=0)
 
     async def FinishMap(self, request: Empty, context: grpc.aio.ServicerContext) -> Empty:
-        finished = self._finished_counter.add_get_value(1)
-        if finished == self._N:
-            self._state.value = TaskType.Reduce
-            self._task_id = AtomicInt()
-            self._finished_counter = AtomicInt()
-        return Empty()
+        with self._task_lock:
+            self._finished_counter += 1
+            if self._finished_counter == self._N:
+                self._state = TaskType.Reduce
+                self._task_id = 0
+                self._finished_counter = 0
+            return Empty()
 
     async def FinishReduce(self, request: Empty, context: grpc.aio.ServicerContext) -> Empty:
-        finished = self._finished_counter.add_get_value(1)
-        if finished == self._M:
-            logging.info('finished!')
-        return Empty()
+        with self._task_lock:
+            self._finished_counter += 1
+            if self._finished_counter == self._M:
+                logging.info('finished at %.4f secs!', time.time() - self._start_time)
+            return Empty()
 
 
-async def serve(service: DriverService) -> None:
+def create_server(service: DriverService) -> grpc.aio.Server:
     server = grpc.aio.server()
     services.add_DriverServiceServicer_to_server(service, server)
     listen_addr = '[::]:50051'
     server.add_insecure_port(listen_addr)
     logging.info("Starting server on %s", listen_addr)
+    return server
+
+
+async def serve(service: DriverService) -> None:
+    server = create_server(service)
     await server.start()
     try:
         await server.wait_for_termination()
