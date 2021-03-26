@@ -13,45 +13,6 @@ import driver_service_pb2_grpc as services
 from driver_service_pb2 import HelloRequest, HelloResponse, TaskInfo, TaskType
 
 
-class AtomicInt:
-
-    def __init__(self, value: int = 0):
-        self.value = value
-        self._lock = Lock()
-
-    def __iadd__(self, other: int):
-        with self._lock:
-            self.value += other
-        return self
-
-    def add_get_value(self, other: int) -> int:
-        with self._lock:
-            self.value += other
-            return self.value
-
-    def __lt__(self, other: float):
-        return self.value < other
-
-    def __eq__(self, other: int):
-        return self.value == other
-
-class AtomicState:
-
-    def __init__(self, value = TaskType.Map):
-        self._value = value
-        self._lock = Lock()
-
-    @property
-    def value(self):
-        with self._lock:
-            return self._value
-
-    @value.setter
-    def value(self, value):
-        with self._lock:
-            self._value = value 
-
-
 class DriverService(services.DriverServiceServicer):
 
     def __init__(self, N: int, M: int):
