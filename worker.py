@@ -1,5 +1,5 @@
 import time
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, IO
 import logging
 import asyncio
 import glob
@@ -7,8 +7,6 @@ from enum import Enum
 
 import grpc
 from google.protobuf.empty_pb2 import Empty
-from aiofiles import open as async_open
-from aiofiles.base import AiofilesContextManager
 
 from driver_service_pb2_grpc import DriverServiceStub
 from driver_service_pb2 import HelloRequest, TaskType, TaskInfo
@@ -23,19 +21,19 @@ class WorkerState(Enum):
 class FileCache:
 
     def __init__(self):
-        self._files: Dict[str: AiofilesContextManager] = {}
+        self._files: Dict[str: IO] = {}
 
-    async def get_file(self, filename: str) -> AiofilesContextManager:
+    def get_file(self, filename: str) -> IO:
         if filename not in self._files:
-            self._files[filename] = await async_open(filename, 'a')
+            self._files[filename] = open(filename, 'a')
         return self._files[filename]
 
-    async def __aenter__(self):
+    def __enter__(self):
         self._files: Dict[str: AiofilesContextManager] = {}
 
-    async def __aexit__(self, exception_type, exception_value, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
         for file in self._files.values():
-            await file.close()
+            file.close()
 
 
 class WordCounter:
@@ -64,28 +62,28 @@ class Worker:
 
     async def _map(self, map_id: int, filenames: List[str], M: int) -> None:
         logging.info('starting map %d', map_id)
-        async with self._file_cache:
+        with self._file_cache:
             for filename in filenames:
-                async with async_open(filename, 'r') as file:
+                with open(filename, 'r') as file:
                     logging.info('mapping file %s', filename)
-                    text :str = await file.read()
+                    text :str = file.read()
                     for word in text.split():
                         bucket_id = ord(word[0]) % M
-                        bf = await self._file_cache.get_file(f'intermediate/mr-{map_id}-{bucket_id}')
-                        await bf.write(f'{word}\n')
+                        bf = self._file_cache.get_file(f'intermediate/mr-{map_id}-{bucket_id}')
+                        bf.write(f'{word}\n')
         await self._finish_map()
 
     async def _reduce(self, bucket_id: int) -> None:
         logging.info('starting reduce %d', bucket_id)
         wc = WordCounter()
         for bucket_file in glob.glob(f'intermediate/mr-*-{bucket_id}'):
-            async with async_open(bucket_file) as bf:
-                async for word in bf:
-                    wc.count(word)
+            with open(bucket_file) as bf:
+                for word in bf.readlines():
+                    wc.count(word.strip())
 
-        async with async_open(f'out/out-{bucket_id}', 'a') as out:
+        with open(f'out/out-{bucket_id}', 'a') as out:
             for word, count in wc.items():
-                await out.write(f'{word[:-1]} {count}\n')
+                out.write(f'{word} {count}\n')
         await self._finish_reduce()
 
     async def _ask_task(self) -> TaskInfo:
@@ -110,7 +108,6 @@ class Worker:
         if self._state != WorkerState.Waiting:
             logging.info('driver is unavailable')
         self._state = WorkerState.Waiting
-        time.sleep(1)
         return True
 
     async def run(self) -> None:
