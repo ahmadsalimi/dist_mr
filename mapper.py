@@ -47,6 +47,7 @@ class Mapper:
     r'''
     Performs the map task
     '''
+
     def __init__(self):
         self._file_cache = FileCache()
 
@@ -56,10 +57,11 @@ class Mapper:
         '''
         with open(filename, 'r') as file:
             logging.info('mapping file %s', filename)
-            text :str = file.read()
+            text: str = file.read()
             for word in text.split():
                 bucket_id = ord(word[0]) % M
-                bf = self._file_cache.get_file(f'{INTERMEDIATE_DIR}/mr-{map_id}-{bucket_id}')
+                bf = self._file_cache.get_file(
+                    f'{INTERMEDIATE_DIR}/mr-{map_id}-{bucket_id}')
                 bf.write(f'{word}\n')
 
     async def _finish_map(self) -> None:

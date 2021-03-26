@@ -15,11 +15,14 @@ import driver_service_pb2_grpc as services
 from driver_service_pb2 import TaskInfo, TaskType
 
 
+INPUTS_DIR = 'inputs'
+
+
 class DriverService(services.DriverServiceServicer):
 
     @staticmethod
     def _split_files(N: int) -> List[List[str]]:
-        files = glob.glob('inputs/*')
+        files = glob.glob('{INPUTS_DIR}/*')
         files_by_map_id = [[] for _ in range(N)]
         for i, file in enumerate(files):
             map_id = i % N
@@ -102,7 +105,8 @@ class DriverService(services.DriverServiceServicer):
         with self._task_lock:
             self._finished_counter += 1
             if self._finished_counter == self._M:
-                logging.info('finished at %.4f secs!', time.time() - self._start_time)
+                logging.info('finished at %.4f secs!',
+                             time.time() - self._start_time)
             return Empty()
 
 
@@ -138,8 +142,10 @@ def get_args() -> Tuple[int, int]:
     Parses N and M from arguments
     '''
     parser = argparse.ArgumentParser(description='Starts the driver.')
-    parser.add_argument('-N', dest='N', type=int, required=True, help='Number of Map tasks')
-    parser.add_argument('-M', dest='M', type=int, required=True, help='Number of Reduce tasks')
+    parser.add_argument('-N', dest='N', type=int,
+                        required=True, help='Number of Map tasks')
+    parser.add_argument('-M', dest='M', type=int,
+                        required=True, help='Number of Reduce tasks')
     args = parser.parse_args()
     return args.N, args.M
 

@@ -27,7 +27,7 @@ class Worker:
         self._state = WorkerState.Working
         self._mapper = Mapper()
         self._reducer = Reducer()
-    
+
     def _noop(self):
         r'''
         NoOp task
