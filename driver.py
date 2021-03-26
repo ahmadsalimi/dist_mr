@@ -8,7 +8,6 @@ from threading import Lock, Event
 from concurrent import futures
 
 import grpc
-import numpy as np
 from google.protobuf.empty_pb2 import Empty
 
 import driver_service_pb2_grpc as services
