@@ -5,8 +5,6 @@ package dist_mr;
 import "google/protobuf/empty.proto";
 
 service DriverService {
-    rpc SayHello (HelloRequest) returns (HelloResponse) {}
-
     rpc AskTask (google.protobuf.Empty) returns (TaskInfo) {}
 
     rpc FinishMap (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -23,14 +21,6 @@ enum TaskType {
 message TaskInfo {
     TaskType type = 1;
     uint32 id = 2;
-    uint32 M = 3;
-    repeated string filenames = 4;
-}
-
-message HelloRequest {
-    string name = 1;
-}
-
-message HelloResponse {
-    string message = 1;
+    uint32 M = 3;                   // Just for Map task
+    repeated string filenames = 4;  // Just for Map task
 }

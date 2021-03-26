@@ -15,11 +15,6 @@ class DriverServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.SayHello = channel.unary_unary(
-                '/dist_mr.DriverService/SayHello',
-                request_serializer=driver__service__pb2.HelloRequest.SerializeToString,
-                response_deserializer=driver__service__pb2.HelloResponse.FromString,
-                )
         self.AskTask = channel.unary_unary(
                 '/dist_mr.DriverService/AskTask',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
@@ -39,12 +34,6 @@ class DriverServiceStub(object):
 
 class DriverServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
-
-    def SayHello(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
 
     def AskTask(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -67,11 +56,6 @@ class DriverServiceServicer(object):
 
 def add_DriverServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'SayHello': grpc.unary_unary_rpc_method_handler(
-                    servicer.SayHello,
-                    request_deserializer=driver__service__pb2.HelloRequest.FromString,
-                    response_serializer=driver__service__pb2.HelloResponse.SerializeToString,
-            ),
             'AskTask': grpc.unary_unary_rpc_method_handler(
                     servicer.AskTask,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
@@ -96,23 +80,6 @@ def add_DriverServiceServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class DriverService(object):
     """Missing associated documentation comment in .proto file."""
-
-    @staticmethod
-    def SayHello(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/dist_mr.DriverService/SayHello',
-            driver__service__pb2.HelloRequest.SerializeToString,
-            driver__service__pb2.HelloResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AskTask(request,
