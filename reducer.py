@@ -52,15 +52,15 @@ class Reducer:
                     wc.count(word.strip())
         return wc
 
-    async def _finish_reduce(self) -> None:
+    def _finish_reduce(self) -> None:
         r'''
         Calls FinishReduce rpc
         '''
-        async with grpc.aio.insecure_channel(SERVER_ADDRESS) as channel:
+        with grpc.insecure_channel(SERVER_ADDRESS) as channel:
             stub = DriverServiceStub(channel)
-            await stub.FinishReduce(Empty())
+            stub.FinishReduce(Empty())
 
-    async def reduce(self, bucket_id: int) -> None:
+    def reduce(self, bucket_id: int) -> None:
         r'''
         Reduce Task
         '''
@@ -69,4 +69,4 @@ class Reducer:
         with open(f'{OUT_DIR}/out-{bucket_id}', 'a') as out:
             for word, count in wc.items():
                 out.write(f'{word} {count}\n')
-        await self._finish_reduce()
+        self._finish_reduce()

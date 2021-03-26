@@ -64,15 +64,15 @@ class Mapper:
                     f'{INTERMEDIATE_DIR}/mr-{map_id}-{bucket_id}')
                 bf.write(f'{word}\n')
 
-    async def _finish_map(self) -> None:
+    def _finish_map(self) -> None:
         r'''
         Calls FinishMap rpc
         '''
-        async with grpc.aio.insecure_channel(SERVER_ADDRESS) as channel:
+        with grpc.insecure_channel(SERVER_ADDRESS) as channel:
             stub = DriverServiceStub(channel)
-            await stub.FinishMap(Empty())
+            stub.FinishMap(Empty())
 
-    async def map(self, map_id: int, filenames: List[str], M: int) -> None:
+    def map(self, map_id: int, filenames: List[str], M: int) -> None:
         r'''
         Map task
         '''
@@ -80,4 +80,4 @@ class Mapper:
         with self._file_cache:
             for filename in filenames:
                 self._map_file(map_id, filename, M)
-        await self._finish_map()
+        self._finish_map()

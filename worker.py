@@ -1,6 +1,5 @@
 import time
 import logging
-import asyncio
 from enum import Enum
 
 import grpc
@@ -36,53 +35,41 @@ class Worker:
         if self._state != WorkerState.Idle:
             logging.info('idle')
 
-    async def _ask_task(self) -> TaskInfo:
+    def _ask_task(self) -> TaskInfo:
         r'''
         Calls AskTask rpc
         '''
-        async with grpc.aio.insecure_channel(SERVER_ADDRESS) as channel:
+        with grpc.insecure_channel(SERVER_ADDRESS) as channel:
             stub = DriverServiceStub(channel)
-            task = await stub.AskTask(Empty())
+            task = stub.AskTask(Empty())
         return task
 
-    def _handle_rpc_error(self, e: grpc.aio._call.AioRpcError) -> bool:
-        r'''
-        Handles rpc Error in method call
-        Returns False if error is not handled
-        '''
-        if not e._code == grpc.StatusCode.UNAVAILABLE:
-            return False
-
-        # Just one time log driver is unavailable
-        if self._state != WorkerState.Waiting:
-            logging.info('driver is unavailable')
-            self._state = WorkerState.Waiting
-        return True
-
-    async def run(self) -> None:
+    def run(self) -> None:
         r'''
         Runs the worker and calls AskTask rpc forever
         '''
         while True:
             try:
-                task = await self._ask_task()
+                task = self._ask_task()
                 if task.type == TaskType.Map:
                     self._state = WorkerState.Working
-                    await self._mapper.map(task.id, task.filenames, task.M)
+                    self._mapper.map(task.id, task.filenames, task.M)
 
                 elif task.type == TaskType.Reduce:
                     self._state = WorkerState.Working
-                    await self._reducer.reduce(task.id)
+                    self._reducer.reduce(task.id)
 
                 else:
                     self._noop()
                     self._state = WorkerState.Idle
-            except grpc.aio._call.AioRpcError as e:
-                if not self._handle_rpc_error(e):
-                    raise
+            except grpc._channel._InactiveRpcError:
+                # Just one time log driver is unavailable
+                if self._state != WorkerState.Waiting:
+                    logging.info('driver is unavailable')
+                    self._state = WorkerState.Waiting
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     worker = Worker()
-    asyncio.run(worker.run())
+    worker.run()

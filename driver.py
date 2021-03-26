@@ -1,11 +1,11 @@
 import logging
 import argparse
-import asyncio
 import glob
 import math
 import time
 from typing import List, Tuple
 from threading import Lock
+from concurrent import futures
 
 import grpc
 import numpy as np
@@ -73,7 +73,7 @@ class DriverService(services.DriverServiceServicer):
 
         return TaskInfo(type=TaskType.Reduce, id=bucket_id)
 
-    async def AskTask(self, request: Empty, context: grpc.aio.ServicerContext) -> TaskInfo:
+    def AskTask(self, request: Empty, context: grpc.ServicerContext) -> TaskInfo:
         r'''
         Returns the next task
         '''
@@ -84,7 +84,7 @@ class DriverService(services.DriverServiceServicer):
                 return self._next_reduce_task()
             return TaskInfo(type=TaskType.NoOp)
 
-    async def FinishMap(self, request: Empty, context: grpc.aio.ServicerContext) -> Empty:
+    def FinishMap(self, request: Empty, context: grpc.ServicerContext) -> Empty:
         r'''
         Each worker calls this rpc when finishes a map task 
         '''
@@ -98,7 +98,7 @@ class DriverService(services.DriverServiceServicer):
                 self._finished_counter = 0
             return Empty()
 
-    async def FinishReduce(self, request: Empty, context: grpc.aio.ServicerContext) -> Empty:
+    def FinishReduce(self, request: Empty, context: grpc.ServicerContext) -> Empty:
         r'''
         Each worker calls this rpc when finished a reduce task
         '''
@@ -110,11 +110,11 @@ class DriverService(services.DriverServiceServicer):
             return Empty()
 
 
-def create_server(service: DriverService) -> grpc.aio.Server:
+def create_server(service: DriverService) -> grpc.Server:
     r'''
     Creates a grpc server with given driver service
     '''
-    server = grpc.aio.server()
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=8))
     services.add_DriverServiceServicer_to_server(service, server)
     listen_addr = '[::]:50051'
     server.add_insecure_port(listen_addr)
@@ -122,19 +122,19 @@ def create_server(service: DriverService) -> grpc.aio.Server:
     return server
 
 
-async def serve(service: DriverService) -> None:
+def serve(service: DriverService) -> None:
     r'''
     Starts a grpc server with given driver service and waits for termination
     '''
     server = create_server(service)
-    await server.start()
+    server.start()
     try:
-        await server.wait_for_termination()
+        server.wait_for_termination()
     except KeyboardInterrupt:
         # Shuts down the server with 0 seconds of grace period. During the
         # grace period, the server won't accept new connections and allow
         # existing RPCs to continue within the grace period.
-        await server.stop(0)
+        server.stop(0)
 
 
 def get_args() -> Tuple[int, int]:
@@ -154,4 +154,4 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     N, M = get_args()
     service = DriverService(N, M)
-    asyncio.run(serve(service))
+    serve(service)
