@@ -35,7 +35,7 @@ Note: *The tests also run in a Github Actions CI.*
 pytest test.py
 ```
 
-## GRPC API
+## GRPC API (`proto/driver-service.proto`)
 
 ### AskTask
 
@@ -60,7 +60,7 @@ You can compile the protobuf file using the following command:
 python -m grpc_tools.protoc -Iproto --python_out=. --grpc_python_out=. proto/driver-service.proto
 ```
 
-## Driver
+## Driver (`driver.py`)
 
 ### Assign files to map tasks
 
@@ -78,7 +78,7 @@ The state initially is set to `Map`. All the states change inside a lock and thi
 
 1. ShutDown: When all of the reduce tasks are finished, the driver switches to ShutDown state. In this state, it returns a ShutDown task.
 
-## Worker
+## Worker (`worker.py`)
 
 The workers wait for the driver to start. Then, they call the `AskTask` rpc in a loop and do the following according to the task type.
 
@@ -90,11 +90,11 @@ The workers wait for the driver to start. Then, they call the `AskTask` rpc in a
 
 - ShutDown: The worker shut itself down
 
-### Mapper
+### Mapper (`mapper.py`)
 
 This class, splits the text of each given file using whitespaces, and adds each word to the corresponding bucket file.
 
-### Reducer
+### Reducer (`reducer.py`)
 
 This class, counts each word of the given bucket id from intermediate files, and writes the result to the corresponding out file.
 
