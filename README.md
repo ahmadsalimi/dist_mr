@@ -7,6 +7,34 @@ A distributed map-reduce implemented by Python 3
 [![Build and Test](https://github.com/ahmadsalimi/dist_mr/actions/workflows/main.yml/badge.svg)](https://github.com/ahmadsalimi/dist_mr/actions/workflows/main.yml)
 
 
+## Install the dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run a worker
+
+Note: *Name is just used in the logging to identify each worker (That argument is optional)*
+
+```bash
+python worker.py [-h|--help] [--name NAME]
+```
+
+## Run the driver
+
+```bash
+python driver.py [-h|--help] -N N -M M
+```
+
+## Run the test
+
+Note: *The tests also run in a Github Actions CI.*
+
+```bash
+pytest test.py
+```
+
 ## GRPC API
 
 ### AskTask
