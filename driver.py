@@ -21,6 +21,9 @@ class DriverService(services.DriverServiceServicer):
 
     @staticmethod
     def _split_files(N: int) -> List[List[str]]:
+        r'''
+        Uses round robin algorithm to assign files to each map task.
+        '''
         files = glob.glob(f'{INPUTS_DIR}/*')
         files_by_map_id = [[] for _ in range(N)]
         for i, file in enumerate(files):
@@ -56,7 +59,10 @@ class DriverService(services.DriverServiceServicer):
 
         logging.info('starting map %d', map_id)
 
-        return TaskInfo(type=TaskType.Map, id=map_id, filenames=self._files_by_map_id[map_id], M=self._M)
+        return TaskInfo(type=TaskType.Map,
+                        id=map_id,
+                        filenames=self._files_by_map_id[map_id],
+                        M=self._M)
 
     def _next_reduce_task(self) -> TaskInfo:
         r'''
@@ -131,6 +137,7 @@ def serve(service: DriverService) -> None:
     server = create_server(service)
     server.start()
     service.stop_event.wait()
+    # Wait to all the workers shut down
     time.sleep(0.5)
     server.stop(0)
 

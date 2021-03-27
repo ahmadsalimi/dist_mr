@@ -34,14 +34,20 @@ class FileCache:
         return self._files[filename]
 
     def __enter__(self):
+        r'''
+        Enters the file cache
+        '''
         assert not self._is_entered, "You cannot enter file cache when already is entered"
         self._is_entered = True
-        self._files: Dict[str, IO] = {}
 
     def __exit__(self, exception_type, exception_value, traceback):
+        r'''
+        Closes all the files and clears the cached files
+        '''
         self._is_entered = False
         for file in self._files.values():
             file.close()
+        self._files: Dict[str, IO] = {}
 
 
 class Mapper:
