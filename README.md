@@ -70,6 +70,8 @@ The driver uses round robin algorithm to assign files to each map task.
 
 The state initially is set to `Map`. All the states change inside a lock and this changes are thread-safe.
 
+![State Machine of the Driver](driver_fsm.svg)
+
 1. Map: In this state, when a worker calls the `AskTask` rpc, assign the next `map_id` to the task and returns file names of that `map_id` to the worker.
 
 1. Reduce: When all of the map tasks are finished, the driver switches to Reduce state. In this state, it returns the next reduce task id in the `AskTask` rpc.
@@ -82,9 +84,9 @@ The state initially is set to `Map`. All the states change inside a lock and thi
 
 The workers wait for the driver to start. Then, they call the `AskTask` rpc in a loop and do the following according to the task type.
 
-- Map: Uses the [Mapper](#Mapper) class to map the given input files into the intermediate files
+- Map: Uses the [Mapper](#mapper-mapperpy) class to map the given input files into the intermediate files
 
-- Reduce: Uses the [Reducer](#Reducer) class to reduce the given bucket id
+- Reduce: Uses the [Reducer](#reducer-reducerpy) class to reduce the given bucket id
 
 - NoOp: The worker does nothing in this loop
 
